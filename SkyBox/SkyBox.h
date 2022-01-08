@@ -51,7 +51,7 @@ float skyboxVertices[] = {
 class SkyBox {
 private:
 	unsigned int skyboxVAO, skyboxVBO;
-	unsigned int forestTexture,factoryTexture;
+	unsigned int forestTexture,factoryTexture,wallTexture;
 	string texture;
 
 	unsigned int loadCubemap(vector<std::string> faces)
@@ -85,11 +85,12 @@ private:
 	}
 
 public:
-	Shader forestShader,factoryShader;
+	Shader forestShader,factoryShader,wallShader;
 
 	SkyBox():forestShader(Shader("../SkyBox/Forest.vs", "../SkyBox/Forest.fs")),
-			factoryShader(Shader("../SkyBox/Factory.vs", "../SkyBox/Factory.fs")) {
-		this->texture="factory";
+			factoryShader(Shader("../SkyBox/Factory.vs", "../SkyBox/Factory.fs")) ,
+			wallShader(Shader("../SkyBox/Factory.vs", "../SkyBox/Factory.fs")){
+		this->texture="wall";
 		// skybox VAO
 		glGenVertexArrays(1, &skyboxVAO);
 		glGenBuffers(1, &skyboxVBO);
@@ -126,6 +127,19 @@ public:
 		factoryTexture = loadCubemap(faces2);
 		factoryShader.use();
 		factoryShader.setInt("factory", 0);
+		
+		vector<std::string> faces3
+		{
+			"../SkyBox/Wall/PX.jpg",//+x
+			"../SkyBox/Wall/NX.jpg",//-x
+			"../SkyBox/Wall/PY.jpg",//+y
+			"../SkyBox/Wall/NY.jpg",//-y
+			"../SkyBox/Wall/PZ.jpg",//+z
+			"../SkyBox/Wall/NZ.jpg",//-z
+		};
+		factoryTexture = loadCubemap(faces3);
+		factoryShader.use();
+		factoryShader.setInt("wall", 0);
 
 	}
 
@@ -138,13 +152,19 @@ public:
     	    forestShader.use();
 			forestShader.setMat4("view", view);
 			forestShader.setMat4("projection", projection);
-		} else
+		} else if(texture=="factory")
 		{
 			glBindTexture(GL_TEXTURE_CUBE_MAP, factoryTexture);
 		
     	    factoryShader.use();
 			factoryShader.setMat4("view", view);
 			factoryShader.setMat4("projection", projection);
+		} else{
+			glBindTexture(GL_TEXTURE_CUBE_MAP, wallTexture);
+		
+    	    wallShader.use();
+			wallShader.setMat4("view", view);
+			wallShader.setMat4("projection", projection);
 		}
 		
 		glBindVertexArray(skyboxVAO);

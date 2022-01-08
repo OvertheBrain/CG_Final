@@ -8,13 +8,27 @@
 
 #include <shader.h>
 #include <camera.h>
+#include <model.h>
 
 #include <iostream>
+#include <cstdlib>
+#include <cmath>
+#include "time.h"
 
 #include "Button/Button.h"
 #include "SkyBox/SkyBox.h"
-#include "Particle/Snow.h"
+//#include "Particle/snow.h"
 
+int MAX(int a, int b) {
+    if (a > b)return a;
+    else if (a = b)return a;
+    else return b;
+}
+int MIN(int a, int b) {
+    if (a < b)return a;
+    else if (a = b)return a;
+    else return b;
+}
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -22,12 +36,26 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow *window);
 unsigned int loadTexture(const char *path);
 
-// settings
-const unsigned int SCR_WIDTH = 1200;
+// window settings
+const unsigned int SCR_WIDTH = 1400;
 const unsigned int SCR_HEIGHT = 800;
 
+enum type { BEZIER, CURSOR };
+enum select { AREA, MODE, START, RESET, TEXTURE, CHANGED, DISPLAY, NONE };
+
+int mouseX, mouseY;
+bool ifstart = false;
+
+// mode selection
+type Mode = BEZIER;
+select Select = NONE;
+bool ifreset = true, ifdisplay = false;
+
+// button size
+const int buttonWidth = 160, buttonHeight = 80, buttonOffsetX = 600, buttonOffsetY = 320, buttonDist = 100;
+
 // camera
-Camera camera(glm::vec3(0.0f, 0.0f, 20.0f));
+Camera camera(glm::vec3(0.0f, 0.0f, 5.0f));
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
@@ -35,9 +63,12 @@ bool firstMouse = true;
 // timing
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
+float totalTime = 0.0f;
 
 // lighting
 glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
+
+
 
 int main() {
     // glfw: initialize and configure
@@ -74,6 +105,8 @@ int main() {
         return -1;
     }
 
+    stbi_set_flip_vertically_on_load(true);
+
     // configure global opengl state
     // -----------------------------
     glEnable(GL_DEPTH_TEST);
@@ -82,9 +115,25 @@ int main() {
     // ------------------------------------
     Shader lightingShader("../shaders/lightingMaps.vs", "../shaders/lightingMaps.fs");
     Shader lightCubeShader("../shaders/lightCube.vs", "../shaders/lightCube.fs");
+    Shader TeapotShader("../Teacups/model.vs", "../Teacups/model.fs");
 
+    Button bezierButton("../Button/bezier.jpg", SCR_WIDTH, SCR_HEIGHT,
+        buttonWidth, buttonHeight, buttonOffsetX, buttonOffsetY - buttonDist);
+    Button cursorButton("../Button/cursor.jpg", SCR_WIDTH, SCR_HEIGHT,
+        buttonWidth, buttonHeight, buttonOffsetX, buttonOffsetY - buttonDist);
+    Button startButton("../Button/start.jpg", SCR_WIDTH, SCR_HEIGHT,
+        buttonWidth, buttonHeight, buttonOffsetX, buttonOffsetY - 2 * buttonDist);
+    Button resetButton("../Button/reset.jpg", SCR_WIDTH, SCR_HEIGHT,
+        buttonWidth, buttonHeight, buttonOffsetX, buttonOffsetY - 3 * buttonDist);
+    Button textureButton("../Button/texture.jpg", SCR_WIDTH, SCR_HEIGHT,
+        buttonWidth, buttonHeight, buttonOffsetX, buttonOffsetY - 4 * buttonDist);
+    Button displayButton("../Button/display.jpg", SCR_WIDTH, SCR_HEIGHT,
+        buttonWidth, buttonHeight, buttonOffsetX, buttonOffsetY - 5 * buttonDist);
+
+    Model Teapot("../resources/models/teapot.obj");
+    //Snow snow("../Particle/Flower01.OBJ", MILD);
     SkyBox background;
-    Snow snow;
+
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
@@ -169,7 +218,7 @@ int main() {
     lightingShader.setInt("material.diffuse", 0);
     lightingShader.setInt("material.specular", 1);
 
-
+    
     // render loop
     // -----------
     while (!glfwWindowShouldClose(window)) {
@@ -237,11 +286,28 @@ int main() {
         glBindVertexArray(lightCubeVAO);
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
+        //Render the Scene(skybox)
         background.drawSkybox(view, projection);
-        model = glm::mat4(1.0f);
-        view = camera.GetViewMatrix();
-        projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 2000.f);
-        snow.Render(deltaTime, model, view, projection);
+
+        //Render the Buttons
+        startButton.drawButton();
+        resetButton.drawButton();
+        textureButton.drawButton();
+        displayButton.drawButton();
+        if (Select == START)
+            bezierButton.drawButton();
+
+
+        //snow.Draw(view, projection, lightPos, camera);
+        
+
+        TeapotShader.use();
+        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f)); // translate it down so it's at the center of the scene
+        model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));	// it's a bit too big for our scene, so scale it down
+        TeapotShader.setMat4("projection", projection);
+        TeapotShader.setMat4("view", view);
+        TeapotShader.setMat4("model", model);
+        Teapot.Draw(TeapotShader);
 
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
@@ -267,7 +333,8 @@ int main() {
 void processInput(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
-
+    if (glfwGetKey(window, GLFW_KEY_M) == GLFW_PRESS)
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         camera.ProcessKeyboard(FORWARD, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
@@ -276,7 +343,60 @@ void processInput(GLFWwindow *window) {
         camera.ProcessKeyboard(LEFT, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         camera.ProcessKeyboard(RIGHT, deltaTime);
+
+    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+        if (Select == NONE) {
+            if (SCR_WIDTH / 2.0 + buttonOffsetX - buttonWidth / 2.0 <= lastX && lastX <= SCR_WIDTH / 2.0 + buttonOffsetX + buttonWidth / 2.0) {
+                if (!ifstart &&
+                    SCR_HEIGHT / 2 - buttonOffsetY - buttonHeight / 2 <= lastY && lastY <= SCR_HEIGHT / 2 - buttonOffsetY + buttonHeight / 2) {
+                    mouseX = MAX(MIN(lastX - SCR_WIDTH / 2 - buttonOffsetX, buttonWidth / 2), -buttonWidth / 2);
+                    mouseY = MIN(MIN(SCR_HEIGHT / 2 - lastY - buttonOffsetY, buttonHeight / 2), -buttonHeight / 2);
+                    Select = AREA;
+                
+                }
+                else
+                    if (!ifdisplay &&
+                        SCR_HEIGHT / 2 - buttonOffsetY - buttonHeight / 2 + buttonDist <= lastY && lastY <= SCR_HEIGHT / 2 - buttonOffsetY + buttonHeight / 2 + buttonDist) {
+                        Select = MODE;
+                        ifreset = true;
+                        Mode = (Mode == BEZIER) ? CURSOR : BEZIER;
+                    }
+                    else
+                        if (!ifdisplay && Mode == BEZIER &&
+                            SCR_HEIGHT / 2 - buttonOffsetY - buttonHeight / 2 + 2 * buttonDist <= lastY && lastY <= SCR_HEIGHT / 2 - buttonOffsetY + buttonHeight / 2 + 2 * buttonDist) {
+                            Select = START;
+                            ifstart = true;
+                        }
+                        else
+                            if (!ifdisplay &&
+                                SCR_HEIGHT / 2 - buttonOffsetY - buttonHeight / 2 + 3 * buttonDist <= lastY && lastY <= SCR_HEIGHT / 2 - buttonOffsetY + buttonHeight / 2 + 3 * buttonDist) {
+                                Select = RESET;
+                                ifreset = true;
+                            }
+                            else
+                                if (
+                                    SCR_HEIGHT / 2 - buttonOffsetY - buttonHeight / 2 + 4 * buttonDist <= lastY && lastY <= SCR_HEIGHT / 2 - buttonOffsetY + buttonHeight / 2 + 4 * buttonDist) {
+                                    Select = TEXTURE;
+                                }
+                if (!ifstart &&
+                    SCR_HEIGHT / 2 - buttonOffsetY - buttonHeight / 2 + 5 * buttonDist <= lastY && lastY <= SCR_HEIGHT / 2 - buttonOffsetY + buttonHeight / 2 + 5 * buttonDist) {
+                    Select = DISPLAY;
+                    ifdisplay = !ifdisplay;
+                    totalTime = 0;
+                }
+            }
+        }
+        else if (Select == AREA)
+        {
+            mouseX = MAX(MIN(lastX - SCR_WIDTH / 2 - buttonOffsetX, buttonWidth / 2), -buttonWidth / 2);
+            mouseY = MAX(MIN(SCR_HEIGHT / 2 - lastY - buttonOffsetY, buttonHeight / 2), -buttonHeight / 2);
+        }
+    }
+    else {
+        Select = NONE;
+    }
 }
+
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
 // ---------------------------------------------------------------------------------------------
