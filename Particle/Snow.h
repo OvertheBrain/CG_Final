@@ -4,6 +4,9 @@
 
 #define MILD 1
 #define BLIZZARD 0
+
+using namespace std;
+
 class Snow {
 public:
 	snowShader sShader;
@@ -13,7 +16,7 @@ public:
 	//float scale = 0.1f;
 
 	Snow(const char* path, int mode, const char* smogPath = NULL) {
-		sShader = snowShader("snow.vs", "snow.fs");
+		sShader = snowShader("../Particle/snow.vs", "../Particle/snow.fs");
 		sMesh = snowMesh(path, true, false);
 		snowMode = mode;
 		if(mode == MILD)
@@ -25,14 +28,14 @@ public:
 			glm::vec3(0.0, -0.2, 0.0), glm::vec3(-0.00, -0.03, -0.00),
 			0.3, 0.1);
 		else if (mode == BLIZZARD) 
-			snowPG = ParticleGenerator(sShader, sMesh, 20000, 10, glm::vec3(-20.0, 20.0, -20.0), 0, glm::vec3(0.0, -20.0, 40.0),
+			snowPG = ParticleGenerator(sShader, sMesh, 5000, 20, glm::vec3(-20.0, 20.0, -20.0), 0, glm::vec3(0.0, -20.0, 40.0),
 				glm::vec4(1.0, 1.0, 1.0, 1), glm::vec4(0.0, 0.0, 0.0, 0.0),
 				glm::vec4(1.0, 1.0, 1.0, 1), 1,
-				20.0, 2.0,
+				100.0, 2.0,
 				0.0, 10.0, 2.0, glm::vec3(0.0, 1.0, 0.0),
-				glm::vec3(0.5, -0.3, 0.0), glm::vec3(-0.00, -0.15, -0.00),
-				0.3, 0.2);
-		sMesh.setupTexture("SnowFlake.png");
+				glm::vec3(0.25, -0.2, 0.0), glm::vec3(-0.00, -0.03, -0.00),
+				0.3, 0.1);
+		sMesh.setupTexture("../Particle/SnowFlake.png");
 		sShader.use();
 		sShader.setInt("texture0", 0);
 	}
@@ -47,7 +50,7 @@ public:
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, snowMesh.texture);
+		glBindTexture(GL_TEXTURE_2D, sMesh.texture);
 		sShader.use();
 		//fire.setShader(snowShader);
 		//c.setShader(snowShader, true);

@@ -17,7 +17,7 @@
 
 #include "Button/Button.h"
 #include "SkyBox/SkyBox.h"
-//#include "Particle/snow.h"
+#include "Particle/snow.h"
 
 int MAX(int a, int b) {
     if (a > b)return a;
@@ -131,8 +131,8 @@ int main() {
         buttonWidth, buttonHeight, buttonOffsetX, buttonOffsetY - 5 * buttonDist);
 
     Model Teapot("../resources/models/teapot.obj");
-    //Snow snow("../Particle/Flower01.OBJ", MILD);
     SkyBox background;
+    Snow snow("../Particle/snow.obj", BLIZZARD);
 
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
@@ -285,6 +285,11 @@ int main() {
 
         glBindVertexArray(lightCubeVAO);
         glDrawArrays(GL_TRIANGLES, 0, 36);
+        
+        if (Select == TEXTURE) {
+            background.changeTexture();
+            Select = CHANGED;
+        }
 
         //Render the Scene(skybox)
         background.drawSkybox(view, projection);
@@ -297,8 +302,8 @@ int main() {
         if (Select == START)
             bezierButton.drawButton();
 
-
-        //snow.Draw(view, projection, lightPos, camera);
+        snow.SetWeather(true);
+        snow.Draw(view, projection, lightPos, camera);
         
 
         TeapotShader.use();
@@ -335,6 +340,8 @@ void processInput(GLFWwindow *window) {
         glfwSetWindowShouldClose(window, true);
     if (glfwGetKey(window, GLFW_KEY_M) == GLFW_PRESS)
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    if(glfwGetKey(window, GLFW_KEY_F5) == GLFW_PRESS)
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         camera.ProcessKeyboard(FORWARD, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
@@ -345,39 +352,34 @@ void processInput(GLFWwindow *window) {
         camera.ProcessKeyboard(RIGHT, deltaTime);
 
     if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
-        if (Select == NONE) {
+        
             if (SCR_WIDTH / 2.0 + buttonOffsetX - buttonWidth / 2.0 <= lastX && lastX <= SCR_WIDTH / 2.0 + buttonOffsetX + buttonWidth / 2.0) {
                 if (!ifstart &&
                     SCR_HEIGHT / 2 - buttonOffsetY - buttonHeight / 2 <= lastY && lastY <= SCR_HEIGHT / 2 - buttonOffsetY + buttonHeight / 2) {
                     mouseX = MAX(MIN(lastX - SCR_WIDTH / 2 - buttonOffsetX, buttonWidth / 2), -buttonWidth / 2);
                     mouseY = MIN(MIN(SCR_HEIGHT / 2 - lastY - buttonOffsetY, buttonHeight / 2), -buttonHeight / 2);
                     Select = AREA;
-                
                 }
-                else
-                    if (!ifdisplay &&
+                else if (!ifdisplay &&
                         SCR_HEIGHT / 2 - buttonOffsetY - buttonHeight / 2 + buttonDist <= lastY && lastY <= SCR_HEIGHT / 2 - buttonOffsetY + buttonHeight / 2 + buttonDist) {
                         Select = MODE;
                         ifreset = true;
                         Mode = (Mode == BEZIER) ? CURSOR : BEZIER;
-                    }
-                    else
-                        if (!ifdisplay && Mode == BEZIER &&
-                            SCR_HEIGHT / 2 - buttonOffsetY - buttonHeight / 2 + 2 * buttonDist <= lastY && lastY <= SCR_HEIGHT / 2 - buttonOffsetY + buttonHeight / 2 + 2 * buttonDist) {
-                            Select = START;
-                            ifstart = true;
-                        }
-                        else
-                            if (!ifdisplay &&
-                                SCR_HEIGHT / 2 - buttonOffsetY - buttonHeight / 2 + 3 * buttonDist <= lastY && lastY <= SCR_HEIGHT / 2 - buttonOffsetY + buttonHeight / 2 + 3 * buttonDist) {
-                                Select = RESET;
-                                ifreset = true;
-                            }
-                            else
-                                if (
-                                    SCR_HEIGHT / 2 - buttonOffsetY - buttonHeight / 2 + 4 * buttonDist <= lastY && lastY <= SCR_HEIGHT / 2 - buttonOffsetY + buttonHeight / 2 + 4 * buttonDist) {
-                                    Select = TEXTURE;
-                                }
+                }
+                else if (!ifdisplay && Mode == BEZIER &&
+                        SCR_HEIGHT / 2 - buttonOffsetY - buttonHeight / 2 + 2 * buttonDist <= lastY && lastY <= SCR_HEIGHT / 2 - buttonOffsetY + buttonHeight / 2 + 2 * buttonDist) {
+                        Select = START;
+                        ifstart = true;
+                }
+                else if (!ifdisplay &&
+                        SCR_HEIGHT / 2 - buttonOffsetY - buttonHeight / 2 + 3 * buttonDist <= lastY && lastY <= SCR_HEIGHT / 2 - buttonOffsetY + buttonHeight / 2 + 3 * buttonDist) {
+                        Select = RESET;
+                        ifreset = true;
+                }
+                else if (SCR_HEIGHT / 2 - buttonOffsetY - buttonHeight / 2 + 4 * buttonDist <= lastY && lastY <= SCR_HEIGHT / 2 - buttonOffsetY + buttonHeight / 2 + 4 * buttonDist) {
+                        Select = TEXTURE;
+                }
+
                 if (!ifstart &&
                     SCR_HEIGHT / 2 - buttonOffsetY - buttonHeight / 2 + 5 * buttonDist <= lastY && lastY <= SCR_HEIGHT / 2 - buttonOffsetY + buttonHeight / 2 + 5 * buttonDist) {
                     Select = DISPLAY;
@@ -385,15 +387,12 @@ void processInput(GLFWwindow *window) {
                     totalTime = 0;
                 }
             }
-        }
-        else if (Select == AREA)
+        
+        if (Select == AREA)
         {
             mouseX = MAX(MIN(lastX - SCR_WIDTH / 2 - buttonOffsetX, buttonWidth / 2), -buttonWidth / 2);
             mouseY = MAX(MIN(SCR_HEIGHT / 2 - lastY - buttonOffsetY, buttonHeight / 2), -buttonHeight / 2);
         }
-    }
-    else {
-        Select = NONE;
     }
 }
 
