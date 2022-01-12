@@ -28,20 +28,20 @@ public:
 			glm::vec3(0.0, -0.2, 0.0), glm::vec3(-0.00, -0.03, -0.00),
 			0.3, 0.1);
 		else if (mode == BLIZZARD) 
-			snowPG = ParticleGenerator(sShader, sMesh, 5000, 20, glm::vec3(-20.0, 20.0, -20.0), 0, glm::vec3(0.0, -20.0, 40.0),
+			snowPG = ParticleGenerator(sShader, sMesh, 3000, 20, glm::vec3(-20.0, 20.0, -20.0), 0, glm::vec3(0.0, -20.0, 40.0),
 				glm::vec4(1.0, 1.0, 1.0, 1), glm::vec4(0.0, 0.0, 0.0, 0.0),
 				glm::vec4(1.0, 1.0, 1.0, 1), 1,
 				100.0, 2.0,
 				0.0, 10.0, 2.0, glm::vec3(0.0, 1.0, 0.0),
 				glm::vec3(0.25, -0.2, 0.0), glm::vec3(-0.00, -0.03, -0.00),
 				0.3, 0.1);
-		sMesh.setupTexture("../Particle/SnowFlake.png");
+		sMesh.setupTexture("../Particle/blossom.png");
 		sShader.use();
 		sShader.setInt("texture0", 0);
 	}
 
 	void SetWeather(bool ing) {
-		if (ing && snowMode == BLIZZARD) snowPG.UpdateGrow(20);
+		if (ing && snowMode == BLIZZARD) snowPG.UpdateGrow(5);
 		else if (ing && snowMode == MILD) snowPG.UpdateGrow(5);
 		else if (!ing) snowPG.UpdateGrow(0);
 	}
@@ -52,16 +52,12 @@ public:
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, sMesh.texture);
 		sShader.use();
-		//fire.setShader(snowShader);
-		//c.setShader(snowShader, true);
-		//snowShader.setBool("isDay", light.isDay);
-		//cout << light.isDay << endl;
 		snowPG.DrawParticle(view, projection, lightpos, camera.Position);
 		if(snowMode == 1)
 			snowPG.UpdateGenPos(glm::vec3(camera.Position.x - 20.0f, 20.0f, camera.Position.z - 20.0f));
 		else
 			snowPG.UpdateGenPos(glm::vec3(camera.Position.x - 10.0f, 20.0f, camera.Position.z - 10.0f));
-		snowPG.Update(0.2);
+		snowPG.Update(0.5);
 		glDisable(GL_BLEND);
 	}
 

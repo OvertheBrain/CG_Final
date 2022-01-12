@@ -255,7 +255,7 @@ public:
 
 	// Render all particles
 	void DrawParticle(glm::mat4 view, glm::mat4 projection, glm::vec3 lightpos, glm::vec3 viewPos) {
-		//glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+		
 		this->shader.use();
 		this->shader.setMat4("projection", projection);
 		this->shader.setMat4("view", view);
@@ -264,17 +264,7 @@ public:
 		this->shader.setFloat("shininess", shininess);
 		this->shader.setFloat("scale", scale); 
 
-		//fire.setShader(this->shader);
-		//c.setShader(this->shader);
-
-		//if (!regularArea) {
-		//	this->shader.setFloat("textureRadius", textureRadius);
-			//this->shader.setFloat("colorPort", p.Life / );
-			//this->shader.setVec4("startColor", startColor);
-			//this->shader.setVec4("endColor", endColor);
-		//}
-
-		//this->shader.setVec4("particlecolor", particles[0].Color);
+		
 		glBindVertexArray(mesh.VAO);
 		if(mesh.vertices.size() != 0)
 			glDrawArraysInstanced(GL_TRIANGLES, 0, mesh.vertices.size(), liveamount);
@@ -465,7 +455,6 @@ private:
 			return (rand() % 100) / 100.0;
 		else
 			return gaussrand() * 0.1  + 0.5;
-			//return (rand() % 100) / 100.0;
 	}	
 
 };

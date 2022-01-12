@@ -10,7 +10,6 @@ out vec2 TexCoord;
 out vec3 FragPos;
 out vec3 Normal;
 out vec4 particlecolor;
-//out vec4 ParticleColor;
 
 uniform mat4 projection;
 uniform mat4 view;

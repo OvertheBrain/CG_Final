@@ -33,20 +33,12 @@ uniform PointLight lights[fireNum];
 uniform PointLight wings[fireNum];
 
 
-
 vec3 CalFire(PointLight lightw, vec3 vieDir, vec3 norm);
 
 void main()
 {
 	vec4 result;
-	if(isDay){
-    //ambient
-    float ambientStrength = 1.0;
-    vec3 ambient = ambientStrength * vec3(1.0f,1.0f,1.0f);
-    result = vec4((ambient),1.0f)*vec4(1.0f, 1.0f, 1.0f, 1.0f)* particlecolor * texture(texture0, TexCoord);
-
-	}
-	else{
+	
 
 	/*
 	float ambientStrength = 0.1;
@@ -72,9 +64,9 @@ void main()
 	for(int i = 0; i < fireNum; i++)
 		tmp += CalFire(wings[i], viewDir, norm);    
 
-    result = vec4(tmp,1.0f)*vec4(1.0f, 1.0f, 1.0f, 1.0f)* particlecolor * texture(texture0, TexCoord);
+    //result = vec4(tmp,1.0f)*vec4(255.0f, 182.0f, 193.0f, 1.0f)* particlecolor * texture(texture0, TexCoord);
+    result = texture(texture0, TexCoord);
 
-	}
 	//vec4 final = vec4(colorFog, 1.0f) * particlecolor;
 	FragColor =  result;
 }

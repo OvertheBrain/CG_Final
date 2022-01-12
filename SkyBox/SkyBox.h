@@ -106,12 +106,12 @@ public:
 		// -------------
 		vector<std::string> faces1
 		{
-			"../SkyBox/Forest/PX.jpg",//+x
-			"../SkyBox/Forest/NX.jpg",//-x
-			"../SkyBox/Forest/PY.jpg",//+y
-			"../SkyBox/Forest/NY.jpg",//-y
-			"../SkyBox/Forest/PZ.jpg",//+z
-			"../SkyBox/Forest/NZ.jpg",//-z
+			"../SkyBox/Skansen/PX.jpg",//+x
+			"../SkyBox/Skansen/NX.jpg",//-x
+			"../SkyBox/Skansen/PY.jpg",//+y
+			"../SkyBox/Skansen/NY.jpg",//-y
+			"../SkyBox/Skansen/PZ.jpg",//+z
+			"../SkyBox/Skansen/NZ.jpg",//-z
 		};
 		forestTexture = loadCubemap(faces1);
 		forestShader.use();
